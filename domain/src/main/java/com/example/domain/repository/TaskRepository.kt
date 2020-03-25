@@ -9,7 +9,7 @@ interface TaskRepository {
 
     fun getTask():List<Task>
 
-    fun createTask(title :String, isDone: Boolean) : Task
+    fun insertTask(title :String, isDone: Boolean = false) : Task
 
     fun isExistTask(title: String) : Boolean
 }

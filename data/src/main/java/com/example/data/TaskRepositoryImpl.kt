@@ -13,8 +13,8 @@ class TaskRepositoryImpl(
         return localDataSource.getTask()
     }
 
-    override fun createTask(title: String, isDone: Boolean): Task {
-        return localDataSource.createTask(title,isDone)
+    override fun insertTask(title: String, isDone: Boolean): Task {
+        return localDataSource.insertTask(title,isDone)
     }
 
     override fun isExistTask(title: String): Boolean {
