@@ -4,6 +4,7 @@ import com.example.data.local.model.TaskEntity
 import com.example.data.local.model.TaskEntityMapper
 import com.example.domain.model.Task
 import com.example.domain.repository.TaskRepository
+import io.reactivex.Single
 import java.util.*
 
 /**
@@ -13,21 +14,27 @@ class TaskLocalDataSource constructor(
     private val taskDAO: TaskDAO
 ): TaskRepository{
 
-    override fun getTask(): List<Task> {
-        return taskDAO.getTask().map {
-            TaskEntityMapper.mapToDomain(it)
+    override fun getTask(): Single<List<Task>> {
+        return Single.fromCallable {
+            taskDAO.getTask().map {
+                TaskEntityMapper.mapToDomain(it)
+            }
         }
     }
 
-    override fun insertTask(title: String, isDone: Boolean): Task {
-        val id = Random().nextInt(100)
-        val task = TaskEntity(id,title,isDone)
-        taskDAO.insertTask(task)
-        return  TaskEntityMapper.mapToDomain(task)
+    override fun insertTask(title: String, isDone: Boolean): Single<Task> {
+        return  Single.fromCallable {
+            val id = Random().nextInt(100)
+            val task = TaskEntity(id,title,isDone)
+            taskDAO.insertTask(task)
+            TaskEntityMapper.mapToDomain(task)
+        }
     }
 
-    override fun isExistTask(title: String): Boolean {
-        return taskDAO.countTask(title)>0
+    override fun isExistTask(title: String): Single<Boolean> {
+        return Single.fromCallable{
+            taskDAO.countTask(title)>0
+        }
     }
 
 }

@@ -2,7 +2,9 @@ package com.example.domain.usecase
 
 import com.example.domain.model.Task
 import com.example.domain.repository.TaskRepository
-import java.lang.IllegalArgumentException
+import io.reactivex.Observable
+import io.reactivex.Single
+import kotlin.IllegalArgumentException
 
 /**
  * Created by Nguyen Văn Lieu on 3/24/2020
@@ -14,33 +16,24 @@ class CreateTaskUseCase constructor(
     /**
      * 1. Task can not be duplicate
      */
-    override fun execute(param: Param): Task {
+    override fun execute(param: Param): Observable<Task> {
 
-        try {
-            val title = param.title
-            val isValid = inValidTitle(title)
-            if(isValid){
-                return taskRepository.insertTask(title,param.isDone)
+        return Single.just(param.title).flatMap { title ->
+            if (title.isEmpty()){
+                Single.error(IllegalArgumentException(TITLE_EMPTY))
+            }else{
+                taskRepository.isExistTask(title)
             }
-            throw UnknownError()
-        }catch (error :InValidTaskError){
-            throw error
-        }
+        }.flatMap { isExist ->
+            if (isExist){
+                Single.error(InValidTaskError(TASK_EXIST))
+            }else{
+                taskRepository.insertTask(param.title,param.isDone)
+            }
+        }.toObservable()
 
     }
 
-    private fun inValidTitle(title: String): Boolean{
-
-        if (title.isEmpty()){
-            throw IllegalArgumentException(TITLE_EMPTY)
-        }
-
-        if(taskRepository.isExistTask(title)){
-            throw InValidTaskError(TASK_EXIST)
-        }
-
-        return true
-    }
 
     companion object{
         const val TASK_EXIST = "Task is exist"
